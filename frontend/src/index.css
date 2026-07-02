@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Warm monochrome base — soft white · warm gray · charcoal */
+    --background: 30 24% 99%;
+    --foreground: 24 12% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 24 12% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 12% 11%;
+
+    /* Single accent — rose gold (subtle, luxurious) */
+    --primary: 346 34% 47%;
+    --primary-foreground: 30 24% 99%;
+    --accent: 18 36% 60%;
+    --accent-foreground: 24 12% 11%;
+
+    --secondary: 30 16% 96%;
+    --secondary-foreground: 24 12% 16%;
+    --muted: 30 14% 95%;
+    --muted-foreground: 25 6% 44%;
+    --destructive: 0 65% 47%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 158 52% 34%;
+
+    --border: 28 14% 90%;
+    --input: 28 14% 89%;
+    --ring: 346 34% 52%;
+    --radius: 0.875rem;
+  }
+
+  .dark {
+    --background: 24 12% 8%;
+    --foreground: 30 16% 95%;
+    --card: 24 10% 11%;
+    --card-foreground: 30 16% 95%;
+    --popover: 24 10% 11%;
+    --popover-foreground: 30 16% 95%;
+
+    --primary: 346 46% 66%;
+    --primary-foreground: 24 12% 9%;
+    --accent: 18 42% 64%;
+    --accent-foreground: 24 12% 9%;
+
+    --secondary: 24 8% 16%;
+    --secondary-foreground: 30 16% 95%;
+    --muted: 24 8% 16%;
+    --muted-foreground: 30 8% 62%;
+    --destructive: 0 60% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 158 46% 52%;
+
+    --border: 24 8% 19%;
+    --input: 24 8% 21%;
+    --ring: 346 46% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 {
+    @apply tracking-tight;
+  }
+  ::selection {
+    @apply bg-primary/15 text-primary;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-card/70 backdrop-blur-xl border border-border/60;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Eyebrow / kicker label used above section headlines */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground;
+  }
+  /* Soft elevated surface — the signature "floating card" */
+  .surface {
+    @apply rounded-2xl border border-border/70 bg-card shadow-soft;
+  }
+  .shimmer {
+    @apply relative overflow-hidden bg-muted;
+  }
+  .shimmer::after {
+    @apply absolute inset-0 -translate-x-full;
+    content: '';
+    background-image: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+  /* Subtle dotted/grid backdrop for hero & decorative panels */
+  .bg-grid {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.04) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+/* Hide native number-input spinners (they collide with our unit suffix) */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
