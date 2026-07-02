@@ -1,0 +1,18 @@
+{
+  "name": "stylesense",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart Age & Size-Specific Dress Recommendation System — thesis monorepo",
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "backend:install": "npm install --prefix backend",
+    "frontend:install": "npm install --prefix frontend",
+    "install:all": "npm run backend:install && npm run frontend:install",
+    "db:migrate": "npm run prisma:migrate --prefix backend",
+    "db:seed": "npm run seed --prefix backend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "test:backend": "npm test --prefix backend"
+  }
+}
