@@ -1,0 +1,488 @@
+// ============================================================================
+//  StyleSense — Database Schema (PostgreSQL, normalized to 3NF)
+//
+//  Design notes for the thesis:
+//   • Reference data (body shapes, age groups, categories, brands, colors,
+//     occasions, seasons, fabrics, sizes) is extracted into lookup tables so
+//     dresses reference them by foreign key — no repeating groups (1NF), every
+//     attribute depends on the whole primary key (2NF), and there are no
+//     transitive dependencies (3NF).
+//   • Many-to-many relationships use Prisma implicit join tables, except where
+//     the relationship carries its own attribute (DressInventory.stock), which
+//     is modelled as an explicit associative entity.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── ENUMS ────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SkinTone {
+  FAIR
+  LIGHT
+  MEDIUM
+  TAN
+  DEEP
+}
+
+enum SleeveType {
+  SLEEVELESS
+  CAP
+  SHORT
+  THREE_QUARTER
+  LONG
+}
+
+enum DressLength {
+  MINI
+  KNEE
+  MIDI
+  MAXI
+  FLOOR
+}
+
+enum AnalyticsEventType {
+  RECOMMENDATION_GENERATED
+  DRESS_VIEWED
+  DRESS_SELECTED
+  WISHLIST_ADDED
+  REVIEW_CREATED
+  PROFILE_UPDATED
+}
+
+// ─────────────────────────────── IDENTITY ─────────────────────────────────
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String
+  role            Role     @default(USER)
+  fullName        String
+  phone           String?
+  avatarUrl       String?
+  isEmailVerified Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  measurements        UserMeasurements?
+  preferences         UserPreferences?
+  reviews             Review[]
+  wishlist            WishlistItem[]
+  recentlyViewed      RecentlyViewed[]
+  recommendationRuns  RecommendationHistory[]
+  loginLogs           LoginLog[]
+  passwordResetTokens PasswordResetToken[]
+  analyticsLogs       AnalyticsLog[]
+
+  @@index([role])
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  ip        String?
+  userAgent String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("login_logs")
+}
+
+// ───────────────────────── USER PROFILE / BODY DATA ───────────────────────
+
+model UserMeasurements {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  age             Int
+  heightCm        Float
+  weightKg        Float
+  bustCm          Float
+  waistCm         Float
+  hipCm           Float
+  shoulderCm      Float?
+  skinTone        SkinTone?
+  // Derived (computed by the explainable body-shape analyzer):
+  bodyShapeId     String?
+  bodyShapeReason String?
+  updatedAt       DateTime  @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bodyShape BodyShape? @relation(fields: [bodyShapeId], references: [id], onDelete: SetNull)
+
+  @@index([bodyShapeId])
+  @@map("user_measurements")
+}
+
+model UserPreferences {
+  id        String @id @default(cuid())
+  userId    String @unique
+  budgetMin Float  @default(0)
+  budgetMax Float  @default(100000)
+
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredColors   Color[]      @relation("UserPreferredColors")
+  preferredStyles   DressStyle[] @relation("UserPreferredStyles")
+  favoriteBrands    Brand[]      @relation("UserFavoriteBrands")
+  favoriteOccasions Occasion[]   @relation("UserFavoriteOccasions")
+
+  @@map("user_preferences")
+}
+
+// ───────────────────────────── LOOKUP TABLES ──────────────────────────────
+
+model BodyShape {
+  id          String  @id @default(cuid())
+  key         String  @unique // HOURGLASS | PEAR | APPLE | RECTANGLE | INVERTED_TRIANGLE
+  name        String
+  description String
+  stylingTips String?
+
+  measurements UserMeasurements[]
+  dresses      Dress[]                 @relation("DressSuitableBodyShapes")
+  histories    RecommendationHistory[]
+
+  @@map("body_shapes")
+}
+
+model AgeGroup {
+  id     String @id @default(cuid())
+  label  String @unique // e.g. "18–24"
+  minAge Int
+  maxAge Int
+  slug   String @unique
+
+  dresses Dress[]
+
+  @@map("age_groups")
+}
+
+model DressCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+  imageUrl    String?
+
+  dresses Dress[]
+
+  @@map("dress_categories")
+}
+
+model DressStyle {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+
+  dresses          Dress[]
+  preferredByUsers UserPreferences[] @relation("UserPreferredStyles")
+
+  @@map("dress_styles")
+}
+
+model Brand {
+  id      String  @id @default(cuid())
+  name    String  @unique
+  slug    String  @unique
+  logoUrl String?
+  country String?
+
+  dresses        Dress[]
+  favoredByUsers UserPreferences[] @relation("UserFavoriteBrands")
+
+  @@map("brands")
+}
+
+model Color {
+  id   String @id @default(cuid())
+  name String @unique
+  hex  String
+
+  dresses          Dress[]           @relation("DressColors")
+  preferredByUsers UserPreferences[] @relation("UserPreferredColors")
+
+  @@map("colors")
+}
+
+model Occasion {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+
+  dresses        Dress[]           @relation("DressOccasions")
+  favoredByUsers UserPreferences[] @relation("UserFavoriteOccasions")
+
+  @@map("occasions")
+}
+
+model Season {
+  id   String @id @default(cuid())
+  name String @unique // Spring | Summer | Autumn | Winter | All-Season
+  slug String @unique
+
+  dresses Dress[]
+
+  @@map("seasons")
+}
+
+model Fabric {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  dresses Dress[]
+
+  @@map("fabrics")
+}
+
+model Size {
+  id        String @id @default(cuid())
+  label     String @unique // XS | S | M | L | XL | XXL
+  sortOrder Int    @default(0)
+  // Body-measurement ranges (cm) used by the size-compatibility scorer:
+  bustMin   Float
+  bustMax   Float
+  waistMin  Float
+  waistMax  Float
+  hipMin    Float
+  hipMax    Float
+
+  inventory DressInventory[]
+
+  @@map("sizes")
+}
+
+// ──────────────────────────────── DRESSES ─────────────────────────────────
+
+model Dress {
+  id                 String      @id @default(cuid())
+  name               String
+  slug               String      @unique
+  description        String
+  brandId            String
+  categoryId         String
+  styleId            String
+  seasonId           String
+  fabricId           String
+  ageGroupId         String
+  sleeveType         SleeveType
+  length             DressLength
+  neckStyle          String
+  pattern            String
+  material           String
+  basePrice          Float
+  discountPct        Int         @default(0)
+  ratingAvg          Float       @default(0)
+  ratingCount        Int         @default(0)
+  popularityScore    Float       @default(0) // maintained from views/selections
+  recommendationTags String[]    @default([])
+  isFeatured         Boolean     @default(false)
+  isActive           Boolean     @default(true)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  brand    Brand         @relation(fields: [brandId], references: [id])
+  category DressCategory @relation(fields: [categoryId], references: [id])
+  style    DressStyle    @relation(fields: [styleId], references: [id])
+  season   Season        @relation(fields: [seasonId], references: [id])
+  fabric   Fabric        @relation(fields: [fabricId], references: [id])
+  ageGroup AgeGroup      @relation(fields: [ageGroupId], references: [id])
+
+  colors              Color[]                 @relation("DressColors")
+  occasions           Occasion[]              @relation("DressOccasions")
+  suitableBodyShapes  BodyShape[]             @relation("DressSuitableBodyShapes")
+  images              DressImage[]
+  inventory           DressInventory[]
+  reviews             Review[]
+  wishlistItems       WishlistItem[]
+  recentlyViewed      RecentlyViewed[]
+  recommendationItems RecommendationItem[]
+  selectedInRuns      RecommendationHistory[] @relation("SelectedDress")
+
+  @@index([brandId])
+  @@index([categoryId])
+  @@index([ageGroupId])
+  @@index([isFeatured])
+  @@index([isActive])
+  @@map("dresses")
+}
+
+model DressImage {
+  id        String  @id @default(cuid())
+  dressId   String
+  url       String
+  alt       String?
+  isPrimary Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  dress Dress @relation(fields: [dressId], references: [id], onDelete: Cascade)
+
+  @@index([dressId])
+  @@map("dress_images")
+}
+
+/// Associative entity: a dress is available in a size with a stock quantity.
+model DressInventory {
+  id      String @id @default(cuid())
+  dressId String
+  sizeId  String
+  stock   Int    @default(0)
+
+  dress Dress @relation(fields: [dressId], references: [id], onDelete: Cascade)
+  size  Size  @relation(fields: [sizeId], references: [id], onDelete: Cascade)
+
+  @@unique([dressId, sizeId])
+  @@index([sizeId])
+  @@map("dress_inventory")
+}
+
+// ─────────────────────────── REVIEWS / WISHLIST ───────────────────────────
+
+model Review {
+  id         String   @id @default(cuid())
+  userId     String
+  dressId    String
+  rating     Int // 1..5
+  title      String?
+  comment    String?
+  isApproved Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dress Dress @relation(fields: [dressId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dressId])
+  @@index([dressId])
+  @@map("reviews")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  dressId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dress Dress @relation(fields: [dressId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dressId])
+  @@index([userId])
+  @@map("wishlist_items")
+}
+
+model RecentlyViewed {
+  id       String   @id @default(cuid())
+  userId   String
+  dressId  String
+  viewedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dress Dress @relation(fields: [dressId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dressId])
+  @@index([userId, viewedAt])
+  @@map("recently_viewed")
+}
+
+// ───────────────────── RECOMMENDATION HISTORY & RULES ─────────────────────
+
+model RecommendationHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  bodyShapeId     String?
+  inputSnapshot   Json // measurements + filters used at generation time
+  resultCount     Int
+  topConfidence   Int      @default(0)
+  selectedDressId String?
+  createdAt       DateTime @default(now())
+
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bodyShape     BodyShape?           @relation(fields: [bodyShapeId], references: [id], onDelete: SetNull)
+  selectedDress Dress?               @relation("SelectedDress", fields: [selectedDressId], references: [id], onDelete: SetNull)
+  items         RecommendationItem[]
+
+  @@index([userId, createdAt])
+  @@map("recommendation_history")
+}
+
+model RecommendationItem {
+  id         String   @id @default(cuid())
+  historyId  String
+  dressId    String
+  rank       Int
+  score      Float
+  confidence Int
+  factors    Json // per-factor breakdown {key, weight, subScore, contribution, label, matched}
+  reasons    String[] @default([])
+
+  history RecommendationHistory @relation(fields: [historyId], references: [id], onDelete: Cascade)
+  dress   Dress                 @relation(fields: [dressId], references: [id], onDelete: Cascade)
+
+  @@index([historyId])
+  @@index([dressId])
+  @@map("recommendation_items")
+}
+
+/// Editable engine configuration — one row per scoring factor.
+model RecommendationRule {
+  id          String   @id @default(cuid())
+  factorKey   String   @unique // bodyShape | measurements | ageGroup | ...
+  label       String
+  description String?
+  weight      Float // raw weight; engine re-normalizes so weights sum to 1
+  isActive    Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+
+  @@map("recommendation_rules")
+}
+
+// ────────────────────────────── ANALYTICS ─────────────────────────────────
+
+model AnalyticsLog {
+  id        String             @id @default(cuid())
+  type      AnalyticsEventType
+  userId    String?
+  dressId   String?
+  metadata  Json?
+  createdAt DateTime           @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("analytics_logs")
+}
