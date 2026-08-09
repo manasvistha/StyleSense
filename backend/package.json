@@ -12,9 +12,12 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
+    "eval": "tsx src/modules/recommendation/eval/run.ts",
+    "derive-shape-tags": "tsx prisma/tools/derive-shape-tags.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "assign-images": "tsx prisma/tools/assign-images.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -19,6 +19,7 @@ export default {
         card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
         popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
         success: 'hsl(var(--success))',
+        warning: 'hsl(var(--warning))',
         /* Rose-gold accent family (the single accent) */
         gold: { DEFAULT: '#b76e79', soft: '#d8a7ae', deep: '#9c5562' },
       },

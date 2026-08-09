@@ -1,13 +1,24 @@
-import { Check, Minus } from 'lucide-react';
+import { AlertTriangle, Check, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FactorScore } from '@/types';
+
+interface Props {
+  factors: FactorScore[];
+  /** Negative signals worth stating plainly rather than hiding. */
+  caveats?: string[];
+}
 
 /**
  * The "Why this recommendation?" panel — renders the full per-factor breakdown
  * so the score is transparent and defensible, not a black box.
+ *
+ * Factors the profile holds no data for are listed separately as prompts rather
+ * than shown as scored results, so an empty preference never looks like a
+ * half-marked match.
  */
-export function WhyPanel({ factors }: { factors: FactorScore[] }) {
-  const sorted = [...factors].sort((a, b) => b.contribution - a.contribution);
+export function WhyPanel({ factors, caveats = [] }: Props) {
+  const scored = factors.filter((f) => f.applicable).sort((a, b) => b.contribution - a.contribution);
+  const dormant = factors.filter((f) => !f.applicable);
 
   return (
     <div className="space-y-3">
@@ -15,7 +26,7 @@ export function WhyPanel({ factors }: { factors: FactorScore[] }) {
         Why this recommendation?
       </p>
       <div className="space-y-2.5">
-        {sorted.map((f) => (
+        {scored.map((f) => (
           <div key={f.key}>
             <div className="flex items-center justify-between gap-2 text-sm">
               <span className="flex items-center gap-2">
@@ -43,8 +54,38 @@ export function WhyPanel({ factors }: { factors: FactorScore[] }) {
           </div>
         ))}
       </div>
+
+      {caveats.length > 0 && (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 p-3">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-warning">
+            <AlertTriangle className="h-3.5 w-3.5" /> Worth knowing
+          </p>
+          <ul className="mt-1.5 space-y-1">
+            {caveats.map((c) => (
+              <li key={c} className="text-xs text-muted-foreground">
+                {c.replace(/^!\s*/, '')}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {dormant.length > 0 && (
+        <div className="rounded-lg border border-dashed border-border p-3">
+          <p className="text-xs font-medium text-muted-foreground">Not scored — we need more from you</p>
+          <ul className="mt-1.5 space-y-1">
+            {dormant.map((f) => (
+              <li key={f.key} className="text-xs text-muted-foreground">
+                {f.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <p className="pt-1 text-xs text-muted-foreground">
-        Each factor contributes <em>sub-score × weight</em> to the overall confidence.
+        Each scored factor contributes <em>sub-score × weight</em> to the overall confidence. Weights are
+        redistributed across the factors we can actually judge.
       </p>
     </div>
   );

@@ -1,13 +1,14 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Shapes, Ruler, CalendarHeart, Target } from 'lucide-react';
+import { Sparkles, Shapes, Ruler, CalendarHeart, Target, Info } from 'lucide-react';
 import { ConfidenceRing } from './ConfidenceRing';
-import type { Recommendation, Profile, Lookup } from '@/types';
+import type { Recommendation, Profile, Lookup, ProfileCompleteness } from '@/types';
 import { estimateSize } from '@/lib/utils';
 
 interface Props {
   recommendations: Recommendation[];
   profile?: Profile | null;
   occasions?: Lookup[];
+  completeness?: ProfileCompleteness;
 }
 
 /**
@@ -15,7 +16,7 @@ interface Props {
  * glanceable facts: detected body shape, confidence, recommended size, top
  * occasion and the overall confidence ring.
  */
-export function RecommendationSummary({ recommendations, profile, occasions = [] }: Props) {
+export function RecommendationSummary({ recommendations, profile, occasions = [], completeness }: Props) {
   const top = recommendations[0];
   const confidence = top?.confidence ?? 0;
   const m = profile?.measurements;
@@ -53,6 +54,14 @@ export function RecommendationSummary({ recommendations, profile, occasions = []
                 ? 'We found strong matches based on your measurements, shape and preferences.'
                 : 'Here are your closest matches — refine your preferences for tighter results.'}
             </p>
+            {/* Confidence is shrunk toward neutral when the profile is thin, so
+                say why rather than presenting an unearned percentage. */}
+            {completeness?.isLowConfidence && (
+              <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                Scored on {Math.round(completeness.coverage * 100)}% of our matching signals — confidence is held
+                back until we know more.
+              </p>
+            )}
           </div>
         </div>
 
@@ -69,6 +78,21 @@ export function RecommendationSummary({ recommendations, profile, occasions = []
           ))}
         </div>
       </div>
+
+      {completeness && completeness.missing.length > 0 && (
+        <div className="relative mt-6 rounded-2xl border border-dashed border-border bg-muted/30 p-4">
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <Info className="h-3.5 w-3.5" /> Improve these results
+          </p>
+          <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+            {completeness.missing.map((m) => (
+              <li key={m.factor} className="text-sm text-muted-foreground">
+                • {m.action}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </motion.div>
   );
 }

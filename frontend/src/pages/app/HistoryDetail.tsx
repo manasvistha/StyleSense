@@ -57,7 +57,7 @@ export default function HistoryDetail() {
                   </div>
                 </div>
                 <div className="rounded-xl border border-border bg-secondary/30 p-4">
-                  <WhyPanel factors={item.factors} />
+                  <WhyPanel factors={item.factors} caveats={item.caveats} />
                 </div>
               </CardContent>
             </Card>

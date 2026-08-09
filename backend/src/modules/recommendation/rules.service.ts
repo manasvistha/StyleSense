@@ -14,6 +14,10 @@ const FACTOR_LABELS: Record<FactorKey, { label: string; description: string }> =
   style: { label: 'Style', description: 'Match with the user’s preferred dress styles.' },
   brand: { label: 'Brand', description: 'Whether the dress is from a favourite brand.' },
   popularity: { label: 'Popularity', description: 'Community rating and review volume.' },
+  personalization: {
+    label: 'Learned Taste',
+    description: 'Similarity to dresses the user has previously selected, saved or viewed.',
+  },
 };
 
 export const rulesService = {

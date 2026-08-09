@@ -19,7 +19,7 @@ import { useCatalog } from '@/hooks/useCatalog';
 import { api, apiErrorMessage } from '@/lib/api';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-import type { Profile, Recommendation, Lookup } from '@/types';
+import type { Profile, Lookup, RecommendationResponse } from '@/types';
 
 const STEPS = [
   { title: 'Basics', icon: User },
@@ -85,7 +85,7 @@ export default function Recommend() {
   const [view, setView] = useState<'wizard' | 'results'>('wizard');
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [result, setResult] = useState<{ recommendations: Recommendation[]; historyId: string | null } | null>(null);
+  const [result, setResult] = useState<RecommendationResponse | null>(null);
   const [selectedDress, setSelectedDress] = useState<string | null>(null);
 
   // Prefill from the saved profile once it loads.
@@ -168,9 +168,7 @@ export default function Recommend() {
         ...(form.categoryId ? { categoryId: form.categoryId } : {}),
         limit: 12,
       };
-      return (await api.post('/recommendations/generate', body)).data.data as {
-        recommendations: Recommendation[]; historyId: string | null;
-      };
+      return (await api.post('/recommendations/generate', body)).data.data as RecommendationResponse;
     },
     onSuccess: async (data) => {
       await qc.invalidateQueries({ queryKey: ['profile'] });
@@ -212,7 +210,26 @@ export default function Recommend() {
   if (view === 'results' && result) {
     return (
       <div className="mx-auto max-w-6xl space-y-8">
-        <RecommendationSummary recommendations={result.recommendations} profile={profile} occasions={selectedOccasions} />
+        <RecommendationSummary
+          recommendations={result.recommendations}
+          profile={profile}
+          occasions={selectedOccasions}
+          completeness={result.completeness}
+        />
+
+        {/* Say plainly what was ruled out, rather than silently shrinking the list. */}
+        {result.excludedCount > 0 && (
+          <div className="surface flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {result.excludedCount} {result.excludedCount === 1 ? 'dress' : 'dresses'} ruled out:
+            </span>
+            {result.excludedReasons.map((r) => (
+              <span key={r.reason}>
+                {r.reason.toLowerCase()} ({r.count})
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

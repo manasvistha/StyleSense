@@ -19,5 +19,8 @@
     "baseUrl": ".",
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src"]
+  // vite.config.ts is listed explicitly: it sits outside src/, so without it the
+  // editor reports the file as not belonging to any project and `npm run
+  // typecheck` skips the build config entirely.
+  "include": ["src", "vite.config.ts"]
 }

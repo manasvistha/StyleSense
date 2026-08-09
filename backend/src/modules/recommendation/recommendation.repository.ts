@@ -1,7 +1,12 @@
 import { prisma } from '../../config/prisma';
 import type { Prisma } from '@prisma/client';
 import type { BodyShapeKey } from '../../config/constants';
-import type { CandidateDress, ScoredDress } from './recommendation.types';
+import type {
+  CandidateDress,
+  DressLengthKey,
+  ScoredDress,
+  SleeveTypeKey,
+} from './recommendation.types';
 
 export interface CandidateFilters {
   categoryId?: string;
@@ -26,6 +31,8 @@ export const recommendationRepository = {
       where,
       include: {
         ageGroup: true,
+        style: { select: { name: true } },
+        fabric: { select: { name: true } },
         colors: { select: { id: true } },
         occasions: { select: { id: true } },
         suitableBodyShapes: { select: { key: true } },
@@ -44,12 +51,21 @@ export const recommendationRepository = {
       popularityScore: d.popularityScore,
       styleId: d.styleId,
       brandId: d.brandId,
+      categoryId: d.categoryId,
+      // Garment attributes — these drive silhouette reasoning in the scorers.
+      styleName: d.style.name,
+      fabricName: d.fabric.name,
+      sleeveType: d.sleeveType as SleeveTypeKey,
+      length: d.length as DressLengthKey,
+      neckStyle: d.neckStyle,
+      pattern: d.pattern,
       ageGroup: { minAge: d.ageGroup.minAge, maxAge: d.ageGroup.maxAge },
       colorIds: d.colors.map((c) => c.id),
       occasionIds: d.occasions.map((o) => o.id),
       suitableBodyShapeKeys: d.suitableBodyShapes.map((s) => s.key as BodyShapeKey),
       sizes: d.inventory.map((inv) => ({
         label: inv.size.label,
+        sortOrder: inv.size.sortOrder,
         bustMin: inv.size.bustMin,
         bustMax: inv.size.bustMax,
         waistMin: inv.size.waistMin,
@@ -79,7 +95,17 @@ export const recommendationRepository = {
       .map((s, idx) => {
         const dress = byId.get(s.dressId);
         if (!dress) return null;
-        return { rank: idx + 1, dress, score: s.score, confidence: s.confidence, factors: s.factors, reasons: s.reasons };
+        return {
+          rank: idx + 1,
+          dress,
+          score: s.score,
+          confidence: s.confidence,
+          coverage: s.coverage,
+          penalty: s.penalty,
+          factors: s.factors,
+          reasons: s.reasons,
+          caveats: s.caveats,
+        };
       })
       .filter(Boolean);
   },
@@ -90,7 +116,16 @@ export const recommendationRepository = {
     inputSnapshot: Prisma.InputJsonValue;
     resultCount: number;
     topConfidence: number;
-    items: { dressId: string; rank: number; score: number; confidence: number; factors: Prisma.InputJsonValue; reasons: string[] }[];
+    coverage: number;
+    items: {
+      dressId: string;
+      rank: number;
+      score: number;
+      confidence: number;
+      factors: Prisma.InputJsonValue;
+      reasons: string[];
+      caveats: string[];
+    }[];
   }) {
     return prisma.recommendationHistory.create({
       data: {
@@ -99,6 +134,7 @@ export const recommendationRepository = {
         inputSnapshot: data.inputSnapshot,
         resultCount: data.resultCount,
         topConfidence: data.topConfidence,
+        coverage: data.coverage,
         items: { create: data.items },
       },
       include: { items: true },

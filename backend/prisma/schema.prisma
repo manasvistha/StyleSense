@@ -427,6 +427,7 @@ model RecommendationHistory {
   inputSnapshot   Json // measurements + filters used at generation time
   resultCount     Int
   topConfidence   Int      @default(0)
+  coverage        Float    @default(1) // share of scoring weight backed by real profile data
   selectedDressId String?
   createdAt       DateTime @default(now())
 
@@ -446,8 +447,9 @@ model RecommendationItem {
   rank       Int
   score      Float
   confidence Int
-  factors    Json // per-factor breakdown {key, weight, subScore, contribution, label, matched}
+  factors    Json // per-factor breakdown {key, weight, subScore, contribution, label, matched, applicable}
   reasons    String[] @default([])
+  caveats    String[] @default([]) // honest negative signals, surfaced alongside the reasons
 
   history RecommendationHistory @relation(fields: [historyId], references: [id], onDelete: Cascade)
   dress   Dress                 @relation(fields: [dressId], references: [id], onDelete: Cascade)

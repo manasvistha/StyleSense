@@ -18,7 +18,7 @@ interface Props {
 
 export function RecommendationCard({ rec, selected, onSelect, onWishlist }: Props) {
   const [open, setOpen] = useState(false);
-  const { dress, confidence, reasons, factors } = rec;
+  const { dress, confidence, reasons, factors, caveats } = rec;
   const tier = confidenceTier(confidence);
   const image = dress.images?.[0]?.url;
   const price = discountedPrice(dress.basePrice, dress.discountPct);
@@ -70,7 +70,7 @@ export function RecommendationCard({ rec, selected, onSelect, onWishlist }: Prop
           </button>
           {open && (
             <div className="mt-3 rounded-xl border border-border bg-secondary/30 p-4">
-              <WhyPanel factors={factors} />
+              <WhyPanel factors={factors} caveats={caveats} />
             </div>
           )}
 

@@ -103,6 +103,8 @@ export interface FactorScore {
   contribution: number;
   label: string;
   matched: boolean;
+  /** False when the profile holds no data for this factor, so it was not scored. */
+  applicable: boolean;
 }
 
 export interface Recommendation {
@@ -110,8 +112,31 @@ export interface Recommendation {
   dress: DressDetail;
   score: number;
   confidence: number;
+  /** Share of scoring weight backed by real profile data (0..1). */
+  coverage: number;
+  /** Combined penalty multiplier applied to the score (1 = none). */
+  penalty: number;
   factors: FactorScore[];
   reasons: string[];
+  /** Honest negative signals shown alongside the reasons. */
+  caveats: string[];
+}
+
+/** Tells the user which factors are dormant and how to activate them. */
+export interface ProfileCompleteness {
+  coverage: number;
+  isLowConfidence: boolean;
+  missing: { factor: string; action: string }[];
+}
+
+export interface RecommendationResponse {
+  historyId: string | null;
+  bodyShape: BodyShape | null;
+  weights: Record<string, number>;
+  completeness: ProfileCompleteness;
+  excludedCount: number;
+  excludedReasons: { reason: string; count: number }[];
+  recommendations: Recommendation[];
 }
 
 export interface RecommendationRun {
@@ -121,11 +146,13 @@ export interface RecommendationRun {
   topConfidence: number;
   bodyShape: BodyShape | null;
   selectedDress: { id: string; name: string; slug: string } | null;
+  coverage: number;
   items: {
     rank: number;
     confidence: number;
     score: number;
     reasons: string[];
+    caveats: string[];
     factors: FactorScore[];
     dress: DressListItem;
   }[];
