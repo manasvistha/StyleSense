@@ -100,66 +100,77 @@ function HeroComposition() {
     animate: { opacity: 1, y: 0 },
     transition: { delay, duration: 0.8, ease: [0.16, 1, 0.3, 1] as const },
   });
+  const lift = 'transition-transform duration-300 ease-out hover:-translate-y-1.5';
   return (
-    <div className="relative mx-auto hidden h-[30rem] w-full max-w-md lg:block">
-      {/* central silhouette panel */}
-      <motion.div {...floaty(0.1)} className="absolute left-1/2 top-1/2 h-[26rem] w-64 -translate-x-1/2 -translate-y-1/2">
-        <div className="relative h-full w-full overflow-hidden rounded-[2rem] border border-border/70 bg-gradient-to-b from-secondary to-card shadow-soft-lg">
-          <div className="absolute inset-0 bg-grid opacity-60" />
-          {/* simple body silhouette */}
-          <svg viewBox="0 0 100 200" className="absolute left-1/2 top-1/2 h-[78%] -translate-x-1/2 -translate-y-1/2 text-primary/25" fill="currentColor">
-            <circle cx="50" cy="22" r="13" />
-            <path d="M50 36 C34 36 30 50 30 64 L26 110 L38 112 L42 80 L42 150 L48 150 L50 96 L52 150 L58 150 L58 80 L62 112 L74 110 L70 64 C70 50 66 36 50 36 Z" />
-          </svg>
-          {/* measurement indicators */}
+    // Clean 2×2 layout: Recommendation + Detected shape on top, Dress + Measurement
+    // side by side below. Each card floats gently and lifts on hover.
+    <div className="relative mx-auto hidden w-full max-w-md grid-cols-2 items-start gap-4 lg:grid">
+      {/* Recommendation card */}
+      <motion.div {...floaty(0.15)} className="animate-float">
+        <div className={`rounded-2xl border border-border/70 bg-card/90 p-4 shadow-soft-lg backdrop-blur-md ${lift}`}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Recommendation</span>
+            <Badge variant="success">94%</Badge>
+          </div>
+          <ul className="mt-2.5 space-y-1.5 text-xs">
+            <li className="flex gap-1.5"><span className="text-success">✔</span> Suits your Hourglass shape</li>
+            <li className="flex gap-1.5"><span className="text-success">✔</span> Fits your size (M)</li>
+            <li className="flex gap-1.5"><span className="text-success">✔</span> Within budget</li>
+          </ul>
+        </div>
+      </motion.div>
+
+      {/* Detected shape chip */}
+      <motion.div {...floaty(0.25)} className="animate-float [animation-delay:-1.2s]">
+        <div className={`rounded-2xl border border-border/70 bg-card/90 p-4 shadow-soft-lg backdrop-blur-md ${lift}`}>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Detected shape</p>
+          <p className="mt-1 font-serif text-lg font-semibold text-primary">Hourglass</p>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full w-[88%] rounded-full bg-primary" />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Mini dress card */}
+      <motion.div {...floaty(0.35)} className="animate-float [animation-delay:-2.4s]">
+        <div className={`overflow-hidden rounded-2xl border border-border/70 bg-card shadow-soft-lg ${lift}`}>
+          <div className="aspect-[4/5] overflow-hidden bg-muted">
+            <SmartImage
+              src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80"
+              alt="Recommended dress" fallbackLabel="Emerald Wrap Midi" className="h-full w-full object-cover" loading="lazy"
+            />
+          </div>
+          <div className="p-2.5">
+            <p className="truncate text-xs font-medium">Emerald Wrap Midi</p>
+            <p className="text-[11px] text-muted-foreground">NPR 6,800</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Body-measurement card (smaller; silhouette shifted left so labels sit clear) */}
+      <motion.div {...floaty(0.45)} className="animate-float [animation-delay:-0.6s]">
+        <div className={`relative ${lift}`}>
+          <div className="relative h-[20rem] w-full overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-b from-secondary to-card shadow-soft-lg">
+            <div className="absolute inset-0 bg-grid opacity-60" />
+            {/* simple body silhouette */}
+            <svg viewBox="0 0 100 200" className="absolute left-[34%] top-1/2 h-[70%] -translate-x-1/2 -translate-y-1/2 text-primary/25" fill="currentColor">
+              <circle cx="50" cy="22" r="13" />
+              <path d="M50 36 C34 36 30 50 30 64 L26 110 L38 112 L42 80 L42 150 L48 150 L50 96 L52 150 L58 150 L58 80 L62 112 L74 110 L70 64 C70 50 66 36 50 36 Z" />
+            </svg>
+          </div>
+          {/* measurement indicators — outside the clipped panel so the pills are never cut off */}
           {[
-            { top: '24%', label: 'Bust', value: '92' },
-            { top: '46%', label: 'Waist', value: '70' },
-            { top: '63%', label: 'Hip', value: '98' },
+            { top: '26%', label: 'Bust', value: '92' },
+            { top: '48%', label: 'Waist', value: '70' },
+            { top: '66%', label: 'Hip', value: '98' },
           ].map((m) => (
-            <div key={m.label} className="absolute right-3 flex items-center gap-1.5" style={{ top: m.top }}>
-              <span className="h-px w-6 bg-primary/40" />
-              <span className="rounded-full border border-border/70 bg-card px-2 py-0.5 text-[10px] font-medium shadow-soft">
+            <div key={m.label} className="absolute right-2 flex -translate-y-1/2 items-center gap-1.5" style={{ top: m.top }}>
+              <span className="h-px w-5 bg-primary/40" />
+              <span className="whitespace-nowrap rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10px] font-medium shadow-soft">
                 {m.label} <span className="text-primary">{m.value}cm</span>
               </span>
             </div>
           ))}
-        </div>
-      </motion.div>
-
-      {/* floating confidence card */}
-      <motion.div {...floaty(0.35)} className="absolute -left-4 top-6 w-52 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-soft-lg backdrop-blur-md animate-float">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Recommendation</span>
-          <Badge variant="success">94%</Badge>
-        </div>
-        <ul className="mt-2.5 space-y-1.5 text-xs">
-          <li className="flex gap-1.5"><span className="text-success">✔</span> Suits your Hourglass shape</li>
-          <li className="flex gap-1.5"><span className="text-success">✔</span> Fits your size (M)</li>
-          <li className="flex gap-1.5"><span className="text-success">✔</span> Within budget</li>
-        </ul>
-      </motion.div>
-
-      {/* floating body-shape chip */}
-      <motion.div {...floaty(0.5)} className="absolute -right-2 top-20 w-44 rounded-2xl border border-border/70 bg-card/90 p-4 shadow-soft-lg backdrop-blur-md">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Detected shape</p>
-        <p className="mt-1 font-serif text-lg font-semibold text-primary">Hourglass</p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-          <div className="h-full w-[88%] rounded-full bg-primary" />
-        </div>
-      </motion.div>
-
-      {/* floating mini dress card */}
-      <motion.div {...floaty(0.65)} className="absolute -right-6 bottom-2 w-40 overflow-hidden rounded-2xl border border-border/70 bg-card shadow-soft-lg">
-        <div className="aspect-[4/5] overflow-hidden bg-muted">
-          <SmartImage
-            src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80"
-            alt="Recommended dress" fallbackLabel="Emerald Wrap Midi" className="h-full w-full object-cover" loading="lazy"
-          />
-        </div>
-        <div className="p-2.5">
-          <p className="truncate text-xs font-medium">Emerald Wrap Midi</p>
-          <p className="text-[11px] text-muted-foreground">NPR 6,800</p>
         </div>
       </motion.div>
     </div>
