@@ -59,6 +59,7 @@ export default function Explore() {
   const activeCount = Object.keys(filters).filter((k) => k !== 'sort').length;
 
   return (
+    <div className="min-h-screen bg-[#FFECF0] dark:bg-background">
     <div className="container py-12">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -138,6 +139,7 @@ export default function Explore() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
