@@ -19,7 +19,7 @@ export function AppLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#FFECF0] dark:bg-background">
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="container flex h-16 items-center justify-between">
           <Brand to="/app" />
