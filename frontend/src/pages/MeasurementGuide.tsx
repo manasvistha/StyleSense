@@ -40,6 +40,7 @@ export default function MeasurementGuide() {
   });
 
   return (
+    <div className="min-h-screen bg-[#FFECF0] dark:bg-background">
     <div className="container py-14">
       <div className="mx-auto max-w-2xl text-center">
         <Badge variant="gold" className="mb-4"><Ruler className="h-3.5 w-3.5" /> Accuracy matters</Badge>
@@ -134,6 +135,7 @@ export default function MeasurementGuide() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   );
 }
