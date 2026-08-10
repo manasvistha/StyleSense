@@ -32,7 +32,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
       </div>
 
       {/* Form side */}
-      <div className="flex items-center justify-center p-6 sm:p-10">
+      <div className="flex items-center justify-center bg-[#FFECF0] p-6 dark:bg-background sm:p-10">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
             <Brand />
