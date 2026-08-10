@@ -31,7 +31,7 @@ const fade = {
 
 export default function Landing() {
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden bg-[#FFECF0]">
       <Hero />
       <TrustBar />
       <HowItWorks />
