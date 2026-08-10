@@ -16,7 +16,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
     "paths": { "@/*": ["./src/*"] }
   },
   // vite.config.ts is listed explicitly: it sits outside src/, so without it the

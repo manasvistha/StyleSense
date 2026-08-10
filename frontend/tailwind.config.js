@@ -50,7 +50,7 @@ export default {
       animation: {
         'fade-up': 'fade-up 0.6s cubic-bezier(0.16,1,0.3,1) both',
         'fade-in': 'fade-in 0.8s ease both',
-        float: 'float 6s ease-in-out infinite',
+        float: 'float 3.5s ease-in-out infinite',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(closest-side, var(--tw-gradient-stops))',

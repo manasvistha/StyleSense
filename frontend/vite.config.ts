@@ -2,13 +2,18 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
+// Auto-open the dev server in Microsoft Edge on Windows (falls back to the
+// default browser on other OSes). Respects an existing BROWSER override.
+if (process.platform === 'win32') process.env.BROWSER ??= 'msedge';
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
   server: {
-    port: 5173,
+    port: 5000,
+    open: true,
     proxy: {
       '/api': { target: 'http://localhost:4000', changeOrigin: true },
       '/uploads': { target: 'http://localhost:4000', changeOrigin: true },
