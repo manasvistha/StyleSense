@@ -10,7 +10,7 @@
  *    the catalogue. Replaced with realistic, varied size runs.
  */
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { deriveBodyShapeFit } from '../../src/modules/recommendation/style-rules';
 import type { BodyShapeKey } from '../../src/config/constants';
 import type { CandidateDress } from '../../src/modules/recommendation/recommendation.types';
@@ -39,7 +39,7 @@ function hash(s: string): number {
   return ((h >>> 0) % 100000) / 100000;
 }
 
-const path = fileURLToPath(new URL('../seed.ts', import.meta.url));
+const path = join(__dirname, '..', 'seed.ts');
 const src = fs.readFileSync(path, 'utf8');
 
 const start = src.indexOf('const dresses: DressSeed[] = [');

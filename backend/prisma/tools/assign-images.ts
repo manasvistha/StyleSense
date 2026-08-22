@@ -13,12 +13,12 @@
  * and spreading usage so no single photo dominates the grid.
  */
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import { CATEGORY_FORMALITY, IMAGE_POOL, type PoolImage } from './image-pool';
 
 const IMAGES_PER_DRESS = 2;
 
-const path = fileURLToPath(new URL('../seed.ts', import.meta.url));
+const path = join(__dirname, '..', 'seed.ts');
 const src = fs.readFileSync(path, 'utf8');
 const nl = src.includes('\r\n') ? '\r\n' : '\n';
 

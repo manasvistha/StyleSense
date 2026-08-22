@@ -62,12 +62,6 @@ export default function Login() {
         </Button>
       </form>
 
-      <div className="mt-6 rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-        <p className="font-medium text-foreground">Demo accounts</p>
-        <p>Admin — admin@stylesense.app / Admin@123</p>
-        <p>User — maya@example.com / User@123</p>
-      </div>
-
       <p className="mt-6 text-center text-sm text-muted-foreground">
         New here?{' '}
         <Link to="/register" className="font-medium text-primary hover:underline">Create an account</Link>

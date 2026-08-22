@@ -136,7 +136,7 @@ function CreateDressForm({ onDone }: { onDone: () => void }) {
 
   const set = (k: keyof typeof f, v: string | boolean) => setF((s) => ({ ...s, [k]: v }));
   const toggle = (setter: typeof setColors) => (id: string) =>
-    setter((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setter((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   const create = useMutation({
     mutationFn: async () => {

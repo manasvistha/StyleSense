@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-
 const prisma = new PrismaClient();
 
 const slug = (s: string) =>
@@ -57,6 +56,9 @@ async function main() {
   const size = (label: string) => sizes.find((s) => s.label === label)!;
 
   // ── Simple lookups ─────────────────────────────────────
+  // Six different Prisma delegates are passed here; their generic `upsert`
+  // signatures are mutually incompatible, so no structural type covers them all.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const upsertNamed = async <T extends { name: string }>(model: any, rows: T[], extra?: (r: T) => object) => {
     return Promise.all(
       rows.map((r) =>

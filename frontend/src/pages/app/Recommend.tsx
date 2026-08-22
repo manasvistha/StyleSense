@@ -121,7 +121,7 @@ export default function Recommend() {
     (id: string) =>
       setForm((f) => {
         const next = new Set(f[key]);
-        next.has(id) ? next.delete(id) : next.add(id);
+        if (next.has(id)) next.delete(id); else next.add(id);
         return { ...f, [key]: next };
       });
 

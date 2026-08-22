@@ -35,6 +35,9 @@ export const slugify = (s: string): string =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 /** Extracts the `dresses` array literal from the seed module. */
+// The literal is parsed out of the seed file at runtime, so its shape is not
+// statically knowable here; callers narrow it themselves.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function readSeedDresses(): any[] {
   const src = fs.readFileSync(SEED_PATH, 'utf8');
   const declaration = src.indexOf('const dresses: DressSeed[] = [');
